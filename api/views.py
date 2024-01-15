@@ -5,6 +5,7 @@ import requests
 from .serializers import CompanySerializer
 from .models import Company
 from rest_framework.parsers import JSONParser
+from datetime import datetime
 
 
 def parse_data(data):
@@ -18,7 +19,18 @@ def parse_data(data):
 @csrf_exempt
 def companies_list(request):
     if request.method == "GET":
-        companies = Company.objects.all()
+        startDate = request.GET.get("startDate")
+        endDate = request.GET.get("endDate")
+        # Request without query params
+        if not startDate or not endDate:
+            companies = Company.objects.all()
+        # Request with query params
+        else:
+            # startDate and endDate as python objects to use them in the filter
+            startDate = datetime.strptime(startDate, "%Y-%m-%d")
+            endDate = datetime.strptime(endDate, "%Y-%m-%d")
+            companies = Company.objects.filter(joined__gte=startDate)
+
         serializer = CompanySerializer(companies, many=True)
         data = parse_data(serializer.data)
         return JsonResponse(data, safe=False, status=200)

@@ -12,15 +12,23 @@ export default class extends Controller {
             return;
         }
 
-        const encodedStartDate = encodeURIComponent(startDate);
-        const encodedEndDate = encodeURIComponent(endDate);
+        let encodedStartDate = ''
+        let encodedEndDate = ''
 
+        try {
+            encodedEndDate = encodeURIComponent(endDate)
+            encodedStartDate = encodeURIComponent(startDate)
+        } catch (e) {
+            console.log(e.message)
+        };
 
+        const queryParams = `?startDate=${encodedStartDate}&endDate=${encodedEndDate}`;
+        const url = `http://localhost:8000/api/companies/${queryParams}`
 
-        axios.get('http://localhost:3001/api/companies').then(function(response) {
+        axios.get(url).then(function(response) {
             updateChart(response);
         }).catch(function(error) {
-            console.log(error);
+            console.log('Error fetching data from server: ', error);
         })
 
     }
@@ -57,14 +65,14 @@ function formatData(rawData) {
         const count = parsedData[company.country];
         parsedData[company.country] = count + 1 || 1;
     });
-
     return parsedData;
 }
 
 async function updateChart(response) {
     const ctx = getContext()
 
-    const data = formatData(response.data)
+    // const data = formatData(response.data)
+    const data = response.data
 
     var chart = new Chart(ctx, {
         type: 'bar',
